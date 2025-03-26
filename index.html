@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unsplash API Search Box Project</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@shopify/draggable/build/umd/index.min.js"></script>
+    <style>
+      .card img {
+        height: 200px;
+        object-fit: cover;
+      }
+      .draggable-handle {
+        cursor: grab;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <h2 class="text-center mb-2">Resim Arama</h2>
+      <p class="text-center mb-2">
+        Bu projede <b>Unsplash API</b> ve
+        <b>draggable kütüphanesi</b> kullanılmıştır!
+      </p>
+      <p class="text-center mb-4"><b>Bora Çatalbaş</b></p>
+      <div class="input-group mb-3">
+        <input
+          type="text"
+          id="searchBox"
+          class="form-control"
+          placeholder="Aramak istediğiniz kelimeyi girin"
+        />
+        <button class="btn btn-primary" id="searchBtn">Ara</button>
+        <button class="btn btn-outline-primary" id="clearBtn">
+          <i class="fa-solid fa-broom"></i>
+        </button>
+      </div>
+      <div class="row draggable-zone" id="results"></div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        $("#searchBtn").click(function () {
+          let query = $("#searchBox").val();
+          if (query.trim() !== "") {
+            fetchImages(query);
+          }
+        });
+
+        $("#clearBtn").click(function () {
+          $("#searchBox").val("");
+          $("#results").empty();
+        });
+
+        var containers = document.querySelectorAll(".draggable-zone");
+
+        if (containers.length === 0) {
+          return false;
+        }
+
+        var swappable = new Draggable.Sortable(containers, {
+          draggable: ".draggable",
+          handle: ".draggable .draggable-handle",
+          mirror: {
+            appendTo: "body",
+            constrainDimensions: true,
+          },
+        });
+      });
+
+      function fetchImages(query) {
+        let apiKey = "YffIeekgNA2aI90Ytx15W_DV_E9s93IXj5gnRha6RWo"; //Unsplash API key
+        let apiUrl = `https://api.unsplash.com/search/photos?query=${query}&per_page=20&client_id=${apiKey}`;
+
+        $.get(apiUrl, function (data) {
+          $("#results").empty();
+          data.results.forEach((photo) => {
+            let imageCard = `
+                <div class="col-md-4 mb-3 draggable">
+                    <div class="card">
+                        <img src="${
+                          photo.urls.small
+                        }" class="card-img-top" alt="${photo.alt_description}">
+                        <div class="card-body">
+                            <p class="card-text">${
+                              photo.alt_description || "Resim"
+                            }</p>
+                            <button class="btn btn-success download-btn" data-url="${
+                              photo.urls.full
+                            }">
+                                <i class="bi bi-download"></i> İndir
+                            </button>
+                            <div style="float: right;">
+                                <i class="fa-solid fa-up-down-left-right fa-xl draggable-handle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            $("#results").append(imageCard);
+          });
+
+          $(".download-btn").click(function () {
+            let imageUrl = $(this).data("url");
+            downloadImage(imageUrl);
+          });
+        });
+      }
+
+      function downloadImage(url) {
+        let a = document.createElement("a");
+        a.href = url;
+        a.download = "resim.jpg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    </script>
+  </body>
+</html>
